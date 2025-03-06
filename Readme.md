@@ -1,7 +1,8 @@
-# Tema 1 APD
-## Szabo Cristina-Andreea 334CA
+Copyright Szabo Cristina-Andreea 2024-2025
 
-Pentru aceasta tema am implementat un program care procesează fișiere text folosind paradigma MapReduce, distribuind sarcinile între mai multe thread-uri. Citesc toate cuvintele dintr-o listă de fișiere și apoi le scriu în fișiere de ieșire bazate pe prima lor literă.
+# Procesare fisiere cu paradigma map-reduce
+
+Am implementat un program care procesează fișiere text folosind paradigma MapReduce, distribuind sarcinile între mai multe thread-uri. Citesc toate cuvintele dintr-o listă de fișiere și apoi le scriu în fișiere de ieșire bazate pe prima lor literă.
 
 Intai iau din argumente numarul de mapperi, reduceri si numele fisierului de input, apoi citesc din fisierul de input toate numele fisierelor si le aloc un index. Dupa ce am aceasta lista de fisiere, pornesc toate thread-urile si le impart, primele num_mappers sa fie thread-uri care folosesc functia mapper si restul reducer. Fiecare thread primeste argumente in functia de rolul sau prin functia care il creaza.
 
