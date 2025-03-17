@@ -1,13 +1,37 @@
 Copyright Szabo Cristina-Andreea 2024-2025
 
-# Procesare fisiere cu paradigma map-reduce
+# **File Processing with MapReduce Paradigm**
 
-Am implementat un program care procesează fișiere text folosind paradigma MapReduce, distribuind sarcinile între mai multe thread-uri. Citesc toate cuvintele dintr-o listă de fișiere și apoi le scriu în fișiere de ieșire bazate pe prima lor literă.
+## **Overview**
+This project implements a file processing system using the **MapReduce** paradigm, utilizing multithreading to distribute tasks among multiple threads. The program processes a list of text files, extracts words, and writes the results into output files based on the first letter of each word. It leverages **pthread** for concurrency, handling multiple mapper and reducer threads.
 
-Intai iau din argumente numarul de mapperi, reduceri si numele fisierului de input, apoi citesc din fisierul de input toate numele fisierelor si le aloc un index. Dupa ce am aceasta lista de fisiere, pornesc toate thread-urile si le impart, primele num_mappers sa fie thread-uri care folosesc functia mapper si restul reducer. Fiecare thread primeste argumente in functia de rolul sau prin functia care il creaza.
+## **Features**
+- **Parallel Processing**: Divides the work between multiple threads using **MapReduce**.
+- **Thread-safe Operations**: Uses mutexes to ensure safe concurrent access to shared data structures.
+- **Efficient Word Indexing**: Indexes words and their occurrences in the input files.
+- **Output Files**: Generates output files where words are sorted alphabetically and by the frequency of their occurrence in files, organized by their first letter.
 
-Functia mapper este o functie unde fiecare thread primeste un fisier, ia cuvintele din fisier si le pune intr-un map comun pentru toate threadurile unde vor fi perechi de tipul cuvant-set indecsi fisiere in care se afla cuvantul. Am un while din care thread-urile ies in momentul in care nu mai este niciun fisier de procesat, altfel iau urmatorul fisier din vector. Iau cate o linie din fisier si iau fiecare cuvant pe care il modific astfel incat sa fie lowercase si sa aiba numai caractere din alfabet si-l adaug intr-o lista auxiliara ca sa nu trebuiasca sa fac lock si unlock pentru fiecare cuvant cand scriu in lista comuna. Dupa ce iau toate cuvintele din fisierul curent, dau lock si le adaug la lista mare, apoi unlock dupa ce le am adaugat pe toate. Am pus o bariera ca sa astept toate thread-urile sa termine, iar cand termina toate le termin executia.
+## **How It Works**
+1. **Input Parsing**  
+   The program first reads input from a given file which contains a list of text files to process. It assigns an index to each file and passes the information to mapper threads.
 
-Functia reducer este o functie in care thread-urile reducer asteapta pana termina toate thread-urile mapper ca apoi sa sorteze lista deja agregata dupa numarul de fisiere in care apar cuvintele si alfabetic, apoi punandu-le in ordine in fisierele cu litera corespunzatoare primei litere a cuvintelor. Fiecare thread ia o litera si isi incheie executia cand nu mai sunt litere in alfabet de procesat. Daca mai sunt, iau urmatoarea litera avand grija ca 2 thread-uri sa nu ia aceeasi litera folosind un mutex si ordonez in functie de numarul de fisiere in care apare cuvantul si apoi alfabetic cuvintele pentru litera curenta. Dupa ce le-am ordonat, thread-ul le scrie in fisierul corespunzator si trece la urmatoarea litera, daca exista.
+2. **Mapper Function**  
+   Each mapper thread reads words from one file:
+   - It processes each word by converting it to lowercase and removing non-alphabetical characters.
+   - It then adds the word to a shared map (`word_idx`), where the key is the word and the value is a set of indices indicating the files in which the word appears.
 
-La final dau join tuturor thread-urilor intr-un singur for si eliberez mutexul si bariera folosite. Deci bariera e folosita ca sa astept toate thread-urile mapper sa-si termine executia pentru a le lasa pe cele reducer sa inceapa executia, deaoarece sunt pornite toate in acelasi timp. Mutexul il folosesc ca thread-urile sa nu ia acelasi fisier sau litera si cand modific lista agregata in mapper, ca sa scrie pe rand thread-urile.
+3. **Reducer Function**  
+   After all mappers finish processing, reducer threads are responsible for:
+   - Sorting words first by the number of files they appear in (in descending order) and then alphabetically.
+   - Writing the sorted words into output files, each corresponding to one letter of the alphabet (e.g., `a.txt`, `b.txt`, etc.).
+
+4. **Synchronization**  
+   - **Mutexes** are used to prevent multiple threads from accessing shared resources (like the word index) simultaneously.
+   - **Barriers** are used to synchronize the mappers and reducers, ensuring all mappers complete their task before reducers begin processing.
+
+## **Architecture**
+- **Mapper Threads**: Each thread processes one file at a time, extracting and normalizing words, and updating a shared word index.
+- **Reducer Threads**: After all mappers finish, the reducers process the accumulated word index and generate output files.
+- **Mutexes**: Used for safe access to shared resources, ensuring that only one thread modifies data at any given time.
+- **Barriers**: Ensures that all mappers have finished their work before the reducers start.
+  
